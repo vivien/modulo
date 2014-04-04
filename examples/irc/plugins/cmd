@@ -1,0 +1,27 @@
+#!/usr/bin/ruby
+
+# This plugin listens to incoming messages,
+# and run the script corresponding to the command, is the prefix matches.
+#
+# For instance: "!foo" will execute the script "cmd.d/foo".
+
+require 'open3'
+
+while message = gets
+  if message =~ /^!(\w+)/
+    begin
+      # TODO pass the whole message (for arguments)
+      # TODO chdir to cmd.d first? e.g. for soupson
+      command = $1
+      out, err, status = Open3.capture3 "#{ __dir__ }/cmd.d/#{ command }"
+      if status.success? && !out.empty?
+        STDOUT.puts out
+        STDOUT.flush
+      else
+        STDERR.puts "#{ command } exited with #{ status.exitstatus } #{ err }"
+      end
+    rescue => error
+      STDERR.puts "#{ command } failed: #{ error.message }"
+    end
+  end
+end

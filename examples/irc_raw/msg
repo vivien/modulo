@@ -1,0 +1,23 @@
+#!/usr/bin/ruby
+
+require 'open3'
+
+prefix = "./"
+cmddir = File.dirname($0) + "/command.d/"
+
+while message = gets
+  if message =~ /^#{ prefix }(\w+)/
+    begin
+      command = $1
+      out, err, status = Open3.capture3 cmddir + command
+      if status.success?
+        STDOUT.puts out
+        STDOUT.flush
+      else
+        STDERR.puts "#{ command } exited with #{ status.exitstatus } #{ err }"
+      end
+    rescue => error
+      STDERR.puts "#{ command } failed: #{ error.message }"
+    end
+  end
+end

@@ -1,0 +1,28 @@
+#!/usr/bin/ruby -I lib -r ring -n
+
+BEGIN {
+  history = Ring.new 5
+}
+
+if $_ !~ /s\/([^\/]*)\/([^\/]*)\/(g?)/
+  history << $_.rstrip
+else
+  regexp = $1
+  replacement = $2
+  method = $3 == 'g' ? :gsub : :sub
+  sub = nil
+
+  # iterate backwards on cached lines
+  history.each do |line|
+    sub = line.send method, regexp, replacement
+    break if sub != line
+    sub = nil
+  end
+
+  if sub
+    STDOUT.puts "> \"#{ sub }\""
+    STDOUT.flush
+  else
+    STDERR.puts "regexp did not match any line"
+  end
+end

@@ -1,0 +1,54 @@
+modulo(1) -- a bot framework that smokes pipes!
+===============================================
+
+## SYNOPSIS
+
+	modulo [-h] [-v]
+	modulo [-d] <plugins-directory> <back-end> [<back-end-option>...]
+
+### OPTIONS
+
+  * `-v`:
+    Print the version and exit.
+
+  * `-h`:
+    Print the help message and exit.
+
+  * `-d`:
+    Start in debug mode (See [SIGNALS][]).
+
+## SIGNALS
+
+modulo reacts to some standard signals, the list below describes their impact:
+
+  * **SIGHUP**: Reload.
+	This asks the core to kill every plugins and restart them. This
+	is useful if you drop a new script, remove or modify one in the
+    specified plugins directory.
+
+  * **SIGUSR1**: Debug mode.
+	This toggles the redirection of every standard error stream
+	(stderr of back end and plugins) between the core's stderr and
+	the back end's stdin. The default is to redirect any stderr to
+	the core's stderr (unless the `-d` option is given). Receiving
+	this signal will instead forward all messages as input to the
+	backend. This is useful for debugging directly from a channel
+	or a chat room. Receiving this signal again will switch back to
+    the previous state.
+
+## EXAMPLES
+
+*modulo* provides several example back ends and plugins. Have a look at the
+*examples* directory within the source.
+
+## AUTHOR
+
+Written by Vivien Didelot <vivien.didelot@gmail.com>.
+
+## COPYRIGHT
+
+Copyright (C) 2014 Vivien Didelot <vivien.didelot@gmail.com>
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+
+This is free software: you are free to change and redistribute it. There is NO 
+WARRANTY, to the extent permitted by law.

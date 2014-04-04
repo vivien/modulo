@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# Set timezone to France
+export TZ=Europe/Paris
+
+sleep_until_10am () {
+  local now=$(date +%s)
+  local today10am=$(date -d 10:05 +%s)
+  local tomorrow10am=$(date -d 'tomorrow 10:05' +%s)
+  local seconds=
+
+  if [ $today10am -gt $now ]
+  then
+    seconds=$(( today10am - now ))
+  else
+    seconds=$(( tomorrow10am - now ))
+  fi
+
+  echo "We have to wait $seconds seconds until the next Bonjour Madame!" >&2
+
+  # Finally wait until next madame!
+  sleep $seconds
+}
+
+fetch_bm () {
+  # We'll use the Pinterest button which has a unique pattern.
+  local url=$(curl -s http://www.bonjourmadame.fr | grep -Eo '&media=[^"]*' | cut -d= -f2-)
+
+  # TODO shorten url
+  echo "Bonjour Madame ! $url (NSFW)"
+}
+
+# Infinitely wait for madames!
+while :
+do
+  sleep_until_10am
+  fetch_bm
+  sleep 1
+done

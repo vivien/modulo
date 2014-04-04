@@ -1,0 +1,64 @@
+#!/usr/bin/ruby
+
+require 'optparse'
+require 'socket'
+
+nick = 'modulo'
+server = 'irc.freenode.net'
+#pass = ''
+port = 6667
+chan = '#modulo' # XXX allow a default channel?
+debug = false
+
+ARGV.options do |o|
+  o.on('-s', '--server=SERVER', 'IRC server to connect to') { |s| server = s }
+  o.on('-p', '--port=PORT',     'Server port')              { |p| port = p.to_i }
+  o.on('-c', '--chan=CHAN',     'Channel to join')          { |c| chan = c }
+  o.on('-n', '--nick=NICK',     'IRC nick name')            { |n| nick = n }
+  o.on('-d', '--[no-]debug',    'Print incoming and outgoing messages on stderr') { |flag| debug = flag }
+end
+
+begin
+  ARGV.options.parse!
+rescue => e
+  STDERR.puts e.message
+  STDERR.puts "Try the `-h' option for more information."
+  exit 1
+end
+
+STDERR.puts "#{ nick } @ #{ server }:#{ port } #{ chan }"
+
+# Flush stdout on every write
+STDOUT.sync = true
+
+socket = TCPSocket.new(server, port)
+commands = [
+  #	"PASS #{pass}",
+  "USER #{nick} 0 * :#{ nick }",
+  "NICK #{nick}",
+  "JOIN #{chan}"
+]
+
+# Connect to the IRC channel
+for cmd in commands
+  socket.puts cmd
+end
+
+# Forward STDIN as a private message
+Thread.new do
+  while msg = STDIN.gets
+    STDERR.puts "<<< #{ msg }" if debug
+    socket.puts "PRIVMSG #{ chan } :#{ msg }"
+  end
+end
+
+# Forward every message to STDOUT
+while msg = socket.gets
+  STDERR.puts ">>> #{ msg }" if debug
+
+  case msg
+  when /^PING :(.*)$/ then socket.puts "PONG #{ $1 }"
+  when /^:(.*)!.* PRIVMSG #{ chan } :(.*)$/ then STDOUT.puts $2
+  else STDERR.puts "[IGNORE] #{ msg }"
+  end
+end

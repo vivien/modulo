@@ -1,0 +1,30 @@
+#!/bin/sh
+# Copyright (C) 2014 Julien Bonjean <julien@bonjean.info>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#set -x
+CITY="${1:-qc-147}"
+
+wget -q "http://weather.gc.ca/rss/city/${CITY}_e.xml" -O - |
+# remove namespace
+sed 's/<feed .*$/<feed>/g' |
+# retrieve feed entry for current conditions
+xmllint --debug --xpath 'string(/feed/entry[starts-with(title,"Current Conditions")]/summary)' - |
+# remove HTML tags
+sed 's/<[^>]\+>//g' |
+# remove invalid symbols
+sed 's/&deg;C//' |
+# extract the data and display
+awk '/Condition:/ {$1="";cond=substr($0,2)} /Temperature:/ {temp1=$2} /Wind Chill:/ {temp2=$3} /Observed at:/ {date=$6" "$7} END {print cond": "temp1"°C/"temp2"°C ("date")"}'

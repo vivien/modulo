@@ -1,0 +1,3 @@
+#!/bin/sh
+# discard everything to stderr
+exec cat >&2

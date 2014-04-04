@@ -1,0 +1,19 @@
+#!/usr/bin/ruby -I lib -r url -n
+# vim: et ts=2 sw=2
+
+URI.extract($_, /https?/) do |url|
+  STDERR.puts "found url: #{ url }"
+
+  title = URL.get_title(url)
+  short = URL.shorten(url)
+
+  STDERR.puts "url title: #{ title }"
+  STDERR.puts "shorten url: #{ short }"
+
+  text = [ title, short ].compact.join " | "
+
+  unless text.empty?
+    STDOUT.puts "[Link Info] " << text
+    STDOUT.flush
+  end
+end

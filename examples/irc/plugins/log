@@ -1,0 +1,14 @@
+#!/usr/bin/ruby -n
+
+BEGIN {
+	STDERR.puts "opening log"
+	log = File.open "/tmp/modulo.txt", "a"
+}
+
+END {
+	STDERR.puts "closing log"
+	log.close
+}
+
+# body of infinite loop
+log.write $_.prepend Time.now.strftime "%F %T "

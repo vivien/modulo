@@ -1,0 +1,14 @@
+#!/usr/bin/ruby -n
+#
+# Output a meme according to the text... (useless)
+
+BEGIN {
+	# flush on every write
+	STDOUT.sync = true
+}
+
+case $_
+when /seriously/i then puts "http://past.is/LbaP"
+when /what/i then puts "http://past.is/LbPQ"
+when /corgi/i then puts "http://a.fod4.com/misc/Corgi%20Run%20Stop.gif"
+end
