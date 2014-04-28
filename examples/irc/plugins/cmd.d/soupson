@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -I ../lib -r twitter
+#!/usr/bin/ruby -I lib -r twitter
 
 def soup_of_the_day
   Twitter.last_tweets("soupanneur").find { |t| t.include? "#soupedujour" }
