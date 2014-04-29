@@ -22,12 +22,20 @@ sleep_until_10am () {
   sleep $seconds
 }
 
+shorten () {
+  local long="$1"
+  local short=$(curl -s "http://is.gd/create.php?format=simple&url=$url")
+
+  # is.gd ignores file extension, so add .jpg for renderers ;)
+  echo $short.jpg
+}
+
 fetch_bm () {
   # We'll use the Pinterest button which has a unique pattern.
   local url=$(curl -s http://www.bonjourmadame.fr | grep -Eo '&media=[^"]*' | cut -d= -f2-)
+  local short=$(shorten $url)
 
-  # TODO shorten url
-  echo "Bonjour Madame ! $url (NSFW)"
+  echo "Bonjour Madame ! $short (NSFW)"
 }
 
 # Infinitely wait for madames!
