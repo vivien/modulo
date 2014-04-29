@@ -25,7 +25,7 @@ module URL
   end
 
   def shorten url
-    Shorten.isgd url
+    Shorten.isgd url rescue nil
   end
 
   module Shorten
