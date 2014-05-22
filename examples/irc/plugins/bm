@@ -44,4 +44,9 @@ do
   sleep_until_10am
   fetch_bm
   sleep 1
-done
+done &
+
+BONJOUR=$!
+
+while read whatever; do :; done
+kill $BONJOUR
