@@ -25,72 +25,35 @@
 
 extern pid_t fork_exec(char *const argv[], int io[3]);
 
-void
-filter_free(struct filter *filter)
-{
-#ifdef DEBUG
-	free(filter->name);
-#endif /* DEBUG */
-	free(filter);
-}
-
-#ifdef DEBUG
-static char *
-rstrip_slash(const char *str)
-{
-	char *slash = strrchr(str, '/');
-	return strdup(slash ? slash + 1 : str);
-}
-#endif /* DEBUG */
-
-struct filter *
+int
 filter_exec(char *argv[], int sigout, int sigerr)
 {
-	struct filter *filter;
 	int io[3];
+	pid_t pid;
 
-	filter = malloc(sizeof(struct filter));
-	if (!filter) {
-		ERROR("failed to allocate memory");
-		goto out;
-	}
-
-#ifdef DEBUG
-	filter->name = rstrip_slash(argv[0]);
-#endif /* DEBUG */
-
-	filter->pid = fork_exec(argv, io);
-	if (filter->pid == -1) {
+	pid = fork_exec(argv, io);
+	if (pid == -1) {
 		ERROR("failed to fork filter %s", argv[0]);
-		goto free;
+		return -1;
 	}
-
-	filter->in = io[0];
 
 	if (eventio(io[1], sigout)) {
 		ERROR("failed to set event I/O for filter stdout");
-		goto kill;
+		return -1;
 	}
 
 	if (eventio(io[2], sigerr)) {
 		ERROR("failed to set event I/O for filter stderr");
-		goto kill;
+		return -1;
 	}
 
-	DBG("[%s:%d] in:%d out:%d err:%d", argv[0], filter->pid, io[0], io[1], io[2]);
+	DBG("[%s:%d] in:%d out:%d err:%d", strrchr(argv[0], '/') ? : argv[0],
+			pid, io[0], io[1], io[2]);
 
 	/*
 	 * No need to store the filter stdout and stderr, they will be given to
-	 * us by the kernel on I/O possible signal.
+	 * us by the kernel on I/O possible signal. Just return stdin pipe end.
 	 */
 
-	goto out;
-
-kill:
-	/* TODO */
-free:
-	filter_free(filter);
-	filter = NULL;
-out:
-	return filter;
+	return io[0];
 }

@@ -19,16 +19,6 @@
 #ifndef _FILTER_H
 #define _FILTER_H
 
-struct filter {
-#ifdef DEBUG
-	char *name;
-#endif /* DEBUG */
-	pid_t pid;		/* process ID */
-	pid_t gid;		/* process group ID */
-	int in;			/* standard input stream */
-};
-
-void filter_free(struct filter *filter);
-struct filter *filter_exec(char *argv[], int sigout, int sigerr);
+int filter_exec(char *argv[], int sigout, int sigerr);
 
 #endif /* _FILTER_H */
