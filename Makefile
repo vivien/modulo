@@ -35,6 +35,9 @@ $(PROGRAM): ${OBJS}
 clean:
 	rm -f *.o $(PROGRAM)
 
+doc:
+	make -C doc
+
 install: all
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	install -m 755 -d $(DESTDIR)$(PREFIX)/libexec/$(PROGRAM)
