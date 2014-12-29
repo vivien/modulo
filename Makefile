@@ -1,21 +1,21 @@
+RELEASE_VERSION = 0.1
+
 ifndef PREFIX
   PREFIX=/usr/local
 endif
-ifndef SYSCONFDIR
-  ifeq ($(PREFIX),/usr)
-    SYSCONFDIR=/etc
-  else
-    SYSCONFDIR=$(PREFIX)/etc
+ifndef VERSION
+  VERSION = $(shell git describe --tags --always 2> /dev/null)
+  ifeq ($(strip $(VERSION)),)
+    VERSION = $(RELEASE_VERSION)
   endif
 endif
 
 PROGRAM = modulo
-VERSION = "$(shell git describe --tags --always)"
 
 CPPFLAGS += -DVERSION=\"${VERSION}\"
 CFLAGS += -Wall
 
-OBJS := $(wildcard src/*.c *.c)
+OBJS := $(wildcard *.c)
 OBJS := $(OBJS:.c=.o)
 
 %.o: %.c %.h
@@ -40,11 +40,9 @@ doc:
 
 install: all
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
-	install -m 755 -d $(DESTDIR)$(PREFIX)/libexec/$(PROGRAM)
 	install -m 755 $(PROGRAM) $(DESTDIR)$(PREFIX)/bin/$(PROGRAM)
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(PROGRAM)
-	rm -rf $(DESTDIR)$(PREFIX)/libexec/$(PROGRAM)
 
 .PHONY: all clean install uninstall
