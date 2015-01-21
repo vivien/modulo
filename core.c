@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "filter.h"
@@ -130,6 +131,32 @@ start_plugins(const char *dirpath, int **plugfds, size_t *nfds)
 		ERRORX("closedir");
 
 	return 0;
+}
+
+static void
+wait_nonblock(void)
+{
+	for (;;) {
+		siginfo_t infop = { 0 };
+		pid_t pid;
+		int code;
+
+		/* Non-blocking check for dead child(ren) */
+		if (waitid(P_ALL, 0, &infop, WEXITED | WNOHANG) == -1)
+			if (errno != ECHILD)
+				ERRORX("waitid");
+
+		/* Error or no (dead yet) child(ren) */
+		pid = infop.si_pid;
+		if (pid == 0)
+			break;
+
+		code = WEXITSTATUS(infop.si_status);
+		if (code != 0)
+			ERROR("process %d exited with status %d", pid, code);
+		else
+			DBG("process %d exited correctly", pid);
+	}
 }
 
 static void
@@ -248,6 +275,9 @@ int main(int argc, char *argv[])
 			ERROR("signal-queue overflow!");
 			ret = 1;
 			goto stop_plugins;
+		case SIGCHLD:
+			wait_nonblock();
+			break;
 		case SIGHUP:
 			/* XXX need to clear the queued signals? */
 			DBG("reloading plugins...");
@@ -289,6 +319,13 @@ stop_backend:
 	DBG("exit: stop backend...");
 	if (close(backfd) == -1)
 		ERRORX("close(%d)", backfd);
+
+	/* wait for child processes termination */
+	/* TODO flush pipes? */
+	/* TODO unblock SIGINT/SIGTERM? */
+	DBG("waiting for child(ren) to terminate...");
+	while (waitpid(-1, NULL, 0) > 0)
+		continue;
 
 	return ret;
 }
